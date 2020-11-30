@@ -1,5 +1,6 @@
 # rte-L3
 Script to download from the RTÉ Player using the recent L3 decryptor. Only works on Windows. Decryptor is not included.
+It may not work for all media.
 
 # Prerequisites
 
