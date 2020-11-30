@@ -17,7 +17,5 @@ It may not work for all media.
 # How to use
 `rtel3.py "URL"`
 
-This script requires adequate free storage space, I have yet to implement a feature to remove unneeded files.
-
 # Disclaimer
 This is for educational purposes only. Downloading copyrighted material from streaming services may violate their Terms of Service. Use at your own risk.
