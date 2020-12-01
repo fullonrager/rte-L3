@@ -17,7 +17,7 @@ import os
 # ***** USER-CONTROLLED VARIABLES *****
 
 # Set to 'True' for media which is intended for mature audiences.
-mature = True
+mature = False
 
 # Set to 'True' to prevent GUI window, currently may prevent the decryptor from functioning.
 headless = False
