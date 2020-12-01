@@ -23,6 +23,7 @@ mature = False
 headless = False
 
 # Ensure paths don't contain a "\", use "/" instead.
+# To prevent potential errors, use a filepath with no spaces.
 path_to_folder = "C:/Users/User/Desktop/rtel3"
 path_to_crx = "D:/widevine-l3-decryptor.crx"
 
