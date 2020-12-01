@@ -6,6 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from collections import Counter
 import time
 from bs4 import BeautifulSoup
 import re
@@ -20,9 +21,6 @@ mature = False
 
 # Set to 'True' to prevent GUI window, currently may prevent the decryptor from functioning.
 headless = False
-
-# Decide whether or not you want to delete or keep the downloaded segments.
-cleanup = True
 
 # Ensure paths don't contain a "\", use "/" instead.
 path_to_folder = "C:/Users/User/Desktop/rtel3"
@@ -181,22 +179,45 @@ os.system(path_to_folder+'/binaries/mkvmerge.exe -o "'+video_title+'-out-key5.mp
 
 # Cleaning up leftover files
 
-if cleanup:
-    print("Removing leftover files...")
-    os.remove(path_to_folder+'/'+video_title+'.mp4')
-    os.remove(path_to_folder+'/'+video_title+'.m4a')
-    os.remove(path_to_folder+'/'+video_title+'-key1.mp4')
-    os.remove(path_to_folder+'/'+video_title+'-key1.m4a')
-    os.remove(path_to_folder+'/'+video_title+'-key2.mp4')
-    os.remove(path_to_folder+'/'+video_title+'-key2.m4a')
-    os.remove(path_to_folder+'/'+video_title+'-key3.mp4')
-    os.remove(path_to_folder+'/'+video_title+'-key3.m4a')
-    os.remove(path_to_folder+'/'+video_title+'-key4.mp4')
-    os.remove(path_to_folder+'/'+video_title+'-key4.m4a')
-    os.remove(path_to_folder+'/'+video_title+'-key5.mp4')
-    os.remove(path_to_folder+'/'+video_title+'-key5.m4a')
-else:
-    print("Cleanup skipped.")
+print("Removing leftover files...")
+os.remove(path_to_folder+'/'+video_title+'.mp4')
+os.remove(path_to_folder+'/'+video_title+'.m4a')
+os.remove(path_to_folder+'/'+video_title+'-key1.mp4')
+os.remove(path_to_folder+'/'+video_title+'-key1.m4a')
+os.remove(path_to_folder+'/'+video_title+'-key2.mp4')
+os.remove(path_to_folder+'/'+video_title+'-key2.m4a')
+os.remove(path_to_folder+'/'+video_title+'-key3.mp4')
+os.remove(path_to_folder+'/'+video_title+'-key3.m4a')
+os.remove(path_to_folder+'/'+video_title+'-key4.mp4')
+os.remove(path_to_folder+'/'+video_title+'-key4.m4a')
+os.remove(path_to_folder+'/'+video_title+'-key5.mp4')
+os.remove(path_to_folder+'/'+video_title+'-key5.m4a')
+
+# Compare file size of each output to determine which key was the correct one
+print("Removing videos decrypted with invalid key...")
+path1 = os.path.abspath(path_to_folder+'/'+video_title+'-out-key1.mp4')
+path2 = os.path.abspath(path_to_folder+'/'+video_title+'-out-key2.mp4')
+path3 = os.path.abspath(path_to_folder+'/'+video_title+'-out-key3.mp4')
+path4 = os.path.abspath(path_to_folder+'/'+video_title+'-out-key4.mp4')
+path5 = os.path.abspath(path_to_folder+'/'+video_title+'-out-key5.mp4')
+
+path1_size = os.path.getsize(path_to_folder+'/'+video_title+'-out-key1.mp4')
+path2_size = os.path.getsize(path_to_folder+'/'+video_title+'-out-key2.mp4')
+path3_size = os.path.getsize(path_to_folder+'/'+video_title+'-out-key3.mp4')
+path4_size = os.path.getsize(path_to_folder+'/'+video_title+'-out-key4.mp4')
+path5_size = os.path.getsize(path_to_folder+'/'+video_title+'-out-key5.mp4')
+
+sizes = [path1_size, path2_size, path3_size, path4_size, path5_size]
+counter = Counter(sizes)
+output = sizes.index(min(counter, key=counter.get))
+print("Video "+str(output+1)+" is the correct file, removing others...")
+
+for i in range(5):
+    i += 1
+    if i == output+1:
+        os.rename(path_to_folder+'/'+video_title+'-out-key'+str(i)+'.mp4', path_to_folder+'/'+video_title+'.mp4')
+    else:
+        os.remove(path_to_folder+'/'+video_title+'-out-key'+str(i)+'.mp4')
 
 print("Finished!")
 sys.exit(0)
