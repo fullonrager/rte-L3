@@ -17,7 +17,7 @@ import os
 # ***** USER-CONTROLLED VARIABLES *****
 
 # Set to 'True' for media which is intended for mature audiences.
-mature = False
+mature = True
 
 # Set to 'True' to prevent GUI window, currently may prevent the decryptor from functioning.
 headless = False
@@ -149,71 +149,58 @@ print("Audio downloaded successfully.")
 
 # Decryption stage
 
-print("Decrypting video with first key:kid...")
-print("Attempting to execute: "+path_to_folder+'/binaries/mp4decrypt.exe --key '+kid_key1+' "'+video_title+'.mp4" "'+video_title+'-key1.mp4"')
+print("Decrypting video and audio with first key:kid...")
 os.system(path_to_folder+'/binaries/mp4decrypt.exe --key '+kid_key1+' "'+video_title+'.mp4" "'+video_title+'-key1.mp4"')
-print("Decrypting audio with first key:kid...")
 os.system(path_to_folder+'/binaries/mp4decrypt.exe --key '+kid_key1+' "'+video_title+'.m4a" "'+video_title+'-key1.m4a"')
 
-print("Decrypting video with second key:kid...")
+print("Decrypting video and audio with second key:kid...")
 os.system(path_to_folder+'/binaries/mp4decrypt.exe --key '+kid_key2+' "'+video_title+'.mp4" "'+video_title+'-key2.mp4"')
-print("Decrypting audio with second key:kid...")
 os.system(path_to_folder+'/binaries/mp4decrypt.exe --key '+kid_key2+' "'+video_title+'.m4a" "'+video_title+'-key2.m4a"')
 
-print("Decrypting video with third key:kid...")
+print("Decrypting video and audio with third key:kid...")
 os.system(path_to_folder+'/binaries/mp4decrypt.exe --key '+kid_key3+' "'+video_title+'.mp4" "'+video_title+'-key3.mp4"')
-print("Decrypting audio with third key:kid...")
 os.system(path_to_folder+'/binaries/mp4decrypt.exe --key '+kid_key3+' "'+video_title+'.m4a" "'+video_title+'-key3.m4a"')
 
-print("Decrypting video with fourth key:kid...")
+print("Decrypting video and audio with fourth key:kid...")
 os.system(path_to_folder+'/binaries/mp4decrypt.exe --key '+kid_key4+' "'+video_title+'.mp4" "'+video_title+'-key4.mp4"')
-print("Decrypting audio with fourth key:kid...")
 os.system(path_to_folder+'/binaries/mp4decrypt.exe --key '+kid_key4+' "'+video_title+'.m4a" "'+video_title+'-key4.m4a"')
 
-print("Decrypting video with fifth key:kid...")
+print("Decrypting video and audio with fifth key:kid...")
 os.system(path_to_folder+'/binaries/mp4decrypt.exe --key '+kid_key5+' "'+video_title+'.mp4" "'+video_title+'-key5.mp4"')
-print("Decrypting audio with fifth key:kid...")
 os.system(path_to_folder+'/binaries/mp4decrypt.exe --key '+kid_key5+' "'+video_title+'.m4a" "'+video_title+'-key5.m4a"')
 
 # Merging video and audio into Matroska, it will fail to merge one with invalid keys.
 
 print("Merging videos together...")
 print("Attempting to execute: "+path_to_folder+'/binaries/mkvmerge.exe -o "'+video_title+'-out-key1.mp4" "'+video_title+'-key1.mp4" "'+video_title+'-key1.m4a"')
-os.system(path_to_folder+'/binaries/mkvmerge.exe -o "'+video_title+'-out-key1.mp4" "'+video_title+'-key1.mp4" "'+video_title+'-key1.m4a"')
-os.system(path_to_folder+'/binaries/mkvmerge.exe -o "'+video_title+'-out-key2.mp4" "'+video_title+'-key2.mp4" "'+video_title+'-key2.m4a"')
-os.system(path_to_folder+'/binaries/mkvmerge.exe -o "'+video_title+'-out-key3.mp4" "'+video_title+'-key3.mp4" "'+video_title+'-key3.m4a"')
-os.system(path_to_folder+'/binaries/mkvmerge.exe -o "'+video_title+'-out-key4.mp4" "'+video_title+'-key4.mp4" "'+video_title+'-key4.m4a"')
-os.system(path_to_folder+'/binaries/mkvmerge.exe -o "'+video_title+'-out-key5.mp4" "'+video_title+'-key5.mp4" "'+video_title+'-key5.m4a"')
+
+for i in range(5):
+    i += 1
+    os.system(path_to_folder+'/binaries/mkvmerge.exe -o "'+video_title+'-out-key'+str(i)+'.mkv" "'+video_title+'-key'+str(i)+'.mp4" "'+video_title+'-key'+str(i)+'.m4a"')
 
 # Cleaning up leftover files
 
 print("Removing leftover files...")
 os.remove(path_to_folder+'/'+video_title+'.mp4')
 os.remove(path_to_folder+'/'+video_title+'.m4a')
-os.remove(path_to_folder+'/'+video_title+'-key1.mp4')
-os.remove(path_to_folder+'/'+video_title+'-key1.m4a')
-os.remove(path_to_folder+'/'+video_title+'-key2.mp4')
-os.remove(path_to_folder+'/'+video_title+'-key2.m4a')
-os.remove(path_to_folder+'/'+video_title+'-key3.mp4')
-os.remove(path_to_folder+'/'+video_title+'-key3.m4a')
-os.remove(path_to_folder+'/'+video_title+'-key4.mp4')
-os.remove(path_to_folder+'/'+video_title+'-key4.m4a')
-os.remove(path_to_folder+'/'+video_title+'-key5.mp4')
-os.remove(path_to_folder+'/'+video_title+'-key5.m4a')
+for i in range(5):
+    i += 1
+    os.remove(path_to_folder+'/'+video_title+'-key'+str(i)+'.mp4')
+    os.remove(path_to_folder+'/'+video_title+'-key'+str(i)+'.m4a')
 
 # Compare file size of each output to determine which key was the correct one
 print("Removing videos decrypted with invalid key...")
-path1 = os.path.abspath(path_to_folder+'/'+video_title+'-out-key1.mp4')
-path2 = os.path.abspath(path_to_folder+'/'+video_title+'-out-key2.mp4')
-path3 = os.path.abspath(path_to_folder+'/'+video_title+'-out-key3.mp4')
-path4 = os.path.abspath(path_to_folder+'/'+video_title+'-out-key4.mp4')
-path5 = os.path.abspath(path_to_folder+'/'+video_title+'-out-key5.mp4')
+path1 = os.path.abspath(path_to_folder+'/'+video_title+'-out-key1.mkv')
+path2 = os.path.abspath(path_to_folder+'/'+video_title+'-out-key2.mkv')
+path3 = os.path.abspath(path_to_folder+'/'+video_title+'-out-key3.mkv')
+path4 = os.path.abspath(path_to_folder+'/'+video_title+'-out-key4.mkv')
+path5 = os.path.abspath(path_to_folder+'/'+video_title+'-out-key5.mkv')
 
-path1_size = os.path.getsize(path_to_folder+'/'+video_title+'-out-key1.mp4')
-path2_size = os.path.getsize(path_to_folder+'/'+video_title+'-out-key2.mp4')
-path3_size = os.path.getsize(path_to_folder+'/'+video_title+'-out-key3.mp4')
-path4_size = os.path.getsize(path_to_folder+'/'+video_title+'-out-key4.mp4')
-path5_size = os.path.getsize(path_to_folder+'/'+video_title+'-out-key5.mp4')
+path1_size = os.path.getsize(path_to_folder+'/'+video_title+'-out-key1.mkv')
+path2_size = os.path.getsize(path_to_folder+'/'+video_title+'-out-key2.mkv')
+path3_size = os.path.getsize(path_to_folder+'/'+video_title+'-out-key3.mkv')
+path4_size = os.path.getsize(path_to_folder+'/'+video_title+'-out-key4.mkv')
+path5_size = os.path.getsize(path_to_folder+'/'+video_title+'-out-key5.mkv')
 
 sizes = [path1_size, path2_size, path3_size, path4_size, path5_size]
 counter = Counter(sizes)
@@ -223,9 +210,9 @@ print("Video "+str(output+1)+" is the correct file, removing others...")
 for i in range(5):
     i += 1
     if i == output+1:
-        os.rename(path_to_folder+'/'+video_title+'-out-key'+str(i)+'.mp4', path_to_folder+'/'+video_title+'.mp4')
+        os.rename(path_to_folder+'/'+video_title+'-out-key'+str(i)+'.mkv', path_to_folder+'/'+video_title+'.mkv')
     else:
-        os.remove(path_to_folder+'/'+video_title+'-out-key'+str(i)+'.mp4')
+        os.remove(path_to_folder+'/'+video_title+'-out-key'+str(i)+'.mkv')
 
 print("Finished!")
 sys.exit(0)
