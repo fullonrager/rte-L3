@@ -34,6 +34,9 @@ video_xml = ""
 keys = []
 url = sys.argv[1]
 
+if os.path.isfile(path_to_folder+'/temp'):
+    os.mkdir(path_to_folder+'/temp')
+
 print("Loading page...")
 
 options = webdriver.ChromeOptions()
@@ -103,8 +106,12 @@ except requests.exceptions.MissingSchema:
     driver.quit()
     raise Exception("Request timed out, try again.")
 
-video_title = video_title_element.attrs["content"]
-print(u"Video title = " + video_title)
+try:
+    video_title = video_title_element.attrs["content"]
+    print(u"Video title = " + video_title)
+except AttributeError:
+    video_title = "RTE-Player-Video"
+    print("Unable to extract video title, using placeholder title instead.")
 
 if video_mpd == "":
     raise Exception("MPD URL not found, try again.")
