@@ -16,9 +16,6 @@ import os
 
 # ***** USER-CONTROLLED VARIABLES *****
 
-# Set to 'True' for media which is intended for mature audiences.
-mature = False
-
 # Set to 'True' to prevent GUI window, currently may prevent the decryptor from functioning.
 headless = False
 
@@ -60,7 +57,7 @@ try:
     time.sleep(0.5)
 except selenium.common.exceptions.TimeoutException:
     driver.quit()
-    raise Exception("Request timed out, try again. Have you enabled the Mature variable if this is for mature audiences?")
+    raise Exception("Request timed out, try again.")
 
 WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.CLASS_NAME, 'btn')))
 
@@ -71,11 +68,11 @@ driver.find_elements_by_class_name('ic-play-white')[0].click()
 time.sleep(2)
 
 # Bypass mature content pop-up if needed
-if mature:
-    print("Accepting mature pop-up...")
+try:
     driver.find_element_by_class_name('modal-body').text
     driver.find_element_by_class_name('col-lg-18').click()
-    time.sleep(1)
+except selenium.common.exceptions.NoSuchElementException:
+    pass
 
 time.sleep(3)
 
