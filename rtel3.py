@@ -54,7 +54,8 @@ driver.get(url)
 try:
     WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, 'onetrust-policy-text')))
 except selenium.common.exceptions.TimeoutException:
-    raise Exception("Request timed out, try again later.")
+    print("Request timed out, try again later.")
+    sys.exit()
 
 print("Accepting necessary cookies...")
 try:
@@ -64,7 +65,8 @@ try:
     time.sleep(0.5)
 except selenium.common.exceptions.TimeoutException:
     driver.quit()
-    raise Exception("Request timed out, try again.")
+    print("Request timed out, try again.")
+    sys.exit()
 
 WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.CLASS_NAME, 'btn')))
 
@@ -74,7 +76,8 @@ time.sleep(4)
 try:
     driver.find_elements_by_class_name('ic-play-white')[0].click()
 except selenium.common.exceptions.NoSuchElementException:
-    raise Exception("Request timed out, try again later.")
+    print("Request timed out, try again later.")
+    sys.exit()
 time.sleep(2)
 
 # Bypass mature content pop-up if needed
@@ -111,7 +114,8 @@ try:
         )
 except requests.exceptions.MissingSchema:
     driver.quit()
-    raise Exception("Request timed out, try again.")
+    print("Request timed out, try again.")
+    sys.exit()
 
 print()
 try:
@@ -122,7 +126,8 @@ except AttributeError:
     print("Unable to extract video title, using placeholder title instead.")
 
 if video_mpd == "":
-    raise Exception("MPD URL not found, try again.")
+    print("MPD URL not found, try again.")
+    sys.exit()
 else:
     print()
     print("Found MPD URL: " + video_mpd)
@@ -144,7 +149,8 @@ try:
     kid_key4 = keys[3][1]+":"+keys[3][0]
     kid_key5 = keys[4][1]+":"+keys[4][0]
 except IndexError:
-    raise Exception("Failed to get decryption key, try again.")
+    print("Failed to get decryption key, try again.")
+    sys.exit()
 
 print("Obtained five possible decryption keys (KID:Key):")
 print("Key 1: " + kid_key1)
