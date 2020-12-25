@@ -19,20 +19,27 @@ import os
 # Set to 'True' to prevent GUI window, currently may prevent the decryptor from functioning.
 headless = False
 
-# Ensure paths don't contain a "\", use "/" instead.
-# To prevent potential errors, use a filepath with no spaces.
-path_to_folder = "C:/Users/User/Desktop/rtel3"
-path_to_crx = "D:/widevine-l3-decryptor.crx"
-
 # *************************************
+os.system('cls')
+print("***  RTÉ Player Downloader (rte-L3)  ***")
+print("***     Developed by fullonrager     ***")
+print()
 
 video_mpd = ""
 video_xml = ""
 keys = []
-url = sys.argv[1]
+try:
+    url = sys.argv[1]
+except IndexError:
+    print("Error: Please enter an RTÉ Player URL to download.")
+    sys.exit()
 
-if os.path.isfile(path_to_folder+'/temp'):
-    os.mkdir(path_to_folder+'/temp')
+path_to_crx = "decryptor.crx"
+
+if not os.path.isdir('temp'):
+    os.mkdir('temp')
+if not os.path.isdir('Downloads'):
+    os.mkdir('Downloads')
 
 print("Loading page...")
 
@@ -64,7 +71,10 @@ WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.CLASS_NAME, '
 # Play the video
 print("Attempting to click play button...")
 time.sleep(4)
-driver.find_elements_by_class_name('ic-play-white')[0].click()
+try:
+    driver.find_elements_by_class_name('ic-play-white')[0].click()
+except selenium.common.exceptions.NoSuchElementException:
+    raise Exception("Request timed out, try again later.")
 time.sleep(2)
 
 # Bypass mature content pop-up if needed
@@ -103,6 +113,7 @@ except requests.exceptions.MissingSchema:
     driver.quit()
     raise Exception("Request timed out, try again.")
 
+print()
 try:
     video_title = video_title_element.attrs["content"]
     print(u"Video title = " + video_title)
@@ -121,7 +132,6 @@ else:
 time.sleep(5)
 
 key_string = driver.find_element_by_tag_name("body").get_attribute("innerText")
-print(key_string)
 driver.quit()
 
 keys = re.findall(r"WidevineDecryptor: Found key: (\w+) \(KID=(\w+)\)", key_string)
@@ -136,68 +146,78 @@ try:
 except IndexError:
     raise Exception("Failed to get decryption key, try again.")
 
+print("Obtained five possible decryption keys (KID:Key):")
+print("Key 1: " + kid_key1)
+print("Key 2: " + kid_key2)
+print("Key 3: " + kid_key3)
+print("Key 4: " + kid_key4)
+print("Key 5: " + kid_key5)
+print()
+
 print("Preparing to download video segments...")
 print("Downloading video...")
-os.system('python -m youtube_dl --fixup never -f bestvideo --output "'+video_title+'.mp4" ' + '"'+video_mpd+'"')
+os.system('python -m youtube_dl --fixup never -f bestvideo --output "temp/'+video_title+'.mp4" ' + '"'+video_mpd+'"')
 print("Video downloaded successfully.")
 print("Downloading audio...")
-os.system('python -m youtube_dl --fixup never -f bestaudio --output "'+video_title+'.m4a" ' + '"'+video_mpd+'"')
+os.system('python -m youtube_dl --fixup never -f bestaudio --output "temp/'+video_title+'.m4a" ' + '"'+video_mpd+'"')
 print("Audio downloaded successfully.")
 
 # Decryption stage
 
-print("Decrypting video and audio with first key:kid...")
-os.system(path_to_folder+'/binaries/mp4decrypt.exe --key '+kid_key1+' "'+video_title+'.mp4" "'+video_title+'-key1.mp4"')
-os.system(path_to_folder+'/binaries/mp4decrypt.exe --key '+kid_key1+' "'+video_title+'.m4a" "'+video_title+'-key1.m4a"')
+print("Decrypting video and audio with first key...")
+os.system('binaries\mp4decrypt.exe --key '+kid_key1+' "temp/'+video_title+'.mp4" "temp/'+video_title+'-key1.mp4"')
+os.system('binaries\mp4decrypt.exe --key '+kid_key1+' "temp/'+video_title+'.m4a" "temp/'+video_title+'-key1.m4a"')
 
-print("Decrypting video and audio with second key:kid...")
-os.system(path_to_folder+'/binaries/mp4decrypt.exe --key '+kid_key2+' "'+video_title+'.mp4" "'+video_title+'-key2.mp4"')
-os.system(path_to_folder+'/binaries/mp4decrypt.exe --key '+kid_key2+' "'+video_title+'.m4a" "'+video_title+'-key2.m4a"')
+print("Decrypting video and audio with second key...")
+os.system('binaries\mp4decrypt.exe --key '+kid_key2+' "temp/'+video_title+'.mp4" "temp/'+video_title+'-key2.mp4"')
+os.system('binaries\mp4decrypt.exe --key '+kid_key2+' "temp/'+video_title+'.m4a" "temp/'+video_title+'-key2.m4a"')
 
-print("Decrypting video and audio with third key:kid...")
-os.system(path_to_folder+'/binaries/mp4decrypt.exe --key '+kid_key3+' "'+video_title+'.mp4" "'+video_title+'-key3.mp4"')
-os.system(path_to_folder+'/binaries/mp4decrypt.exe --key '+kid_key3+' "'+video_title+'.m4a" "'+video_title+'-key3.m4a"')
+print("Decrypting video and audio with third key...")
+os.system('binaries\mp4decrypt.exe --key '+kid_key3+' "temp/'+video_title+'.mp4" "temp/'+video_title+'-key3.mp4"')
+os.system('binaries\mp4decrypt.exe --key '+kid_key3+' "temp/'+video_title+'.m4a" "temp/'+video_title+'-key3.m4a"')
 
-print("Decrypting video and audio with fourth key:kid...")
-os.system(path_to_folder+'/binaries/mp4decrypt.exe --key '+kid_key4+' "'+video_title+'.mp4" "'+video_title+'-key4.mp4"')
-os.system(path_to_folder+'/binaries/mp4decrypt.exe --key '+kid_key4+' "'+video_title+'.m4a" "'+video_title+'-key4.m4a"')
+print("Decrypting video and audio with fourth key...")
+os.system('binaries\mp4decrypt.exe --key '+kid_key4+' "temp/'+video_title+'.mp4" "temp/'+video_title+'-key4.mp4"')
+os.system('binaries\mp4decrypt.exe --key '+kid_key4+' "temp/'+video_title+'.m4a" "temp/'+video_title+'-key4.m4a"')
 
-print("Decrypting video and audio with fifth key:kid...")
-os.system(path_to_folder+'/binaries/mp4decrypt.exe --key '+kid_key5+' "'+video_title+'.mp4" "'+video_title+'-key5.mp4"')
-os.system(path_to_folder+'/binaries/mp4decrypt.exe --key '+kid_key5+' "'+video_title+'.m4a" "'+video_title+'-key5.m4a"')
+print("Decrypting video and audio with fifth key...")
+os.system('binaries\mp4decrypt.exe --key '+kid_key5+' "temp/'+video_title+'.mp4" "temp/'+video_title+'-key5.mp4"')
+os.system('binaries\mp4decrypt.exe --key '+kid_key5+' "temp/'+video_title+'.m4a" "temp/'+video_title+'-key5.m4a"')
 
-# Merging video and audio into Matroska, it will fail to merge one with invalid keys.
+# Merging video and audio into Matroska, it will fail to merge those with invalid keys.
 
 print("Merging videos together...")
-print("Attempting to execute: "+path_to_folder+'/binaries/mkvmerge.exe -o "'+video_title+'-out-key1.mp4" "'+video_title+'-key1.mp4" "'+video_title+'-key1.m4a"')
-
 for i in range(5):
     i += 1
-    os.system(path_to_folder+'/binaries/mkvmerge.exe -o "'+video_title+'-out-key'+str(i)+'.mkv" "'+video_title+'-key'+str(i)+'.mp4" "'+video_title+'-key'+str(i)+'.m4a"')
+    os.system('binaries\mkvmerge.exe -o "temp/'+video_title+'-out-key'+str(i)+'.mkv" "temp/'+video_title+'-key'+str(i)+'.mp4" "temp/'+video_title+'-key'+str(i)+'.m4a"')
 
 # Cleaning up leftover files
 
 print("Removing leftover files...")
-os.remove(path_to_folder+'/'+video_title+'.mp4')
-os.remove(path_to_folder+'/'+video_title+'.m4a')
+if os.path.isfile('temp/'+video_title+'.mp4/part_urls'):
+    os.remove('temp/'+video_title+'.mp4.part_urls')
+if os.path.isfile('temp/'+video_title+'.m4a.part_urls'):
+    os.remove('temp/'+video_title+'.m4a.part_urls')
+os.remove('temp/'+video_title+'.mp4')
+os.remove('temp/'+video_title+'.m4a')
 for i in range(5):
     i += 1
-    os.remove(path_to_folder+'/'+video_title+'-key'+str(i)+'.mp4')
-    os.remove(path_to_folder+'/'+video_title+'-key'+str(i)+'.m4a')
+    os.remove('temp/'+video_title+'-key'+str(i)+'.mp4')
+    os.remove('temp/'+video_title+'-key'+str(i)+'.m4a')
 
 # Compare file size of each output to determine which key was the correct one
 print("Removing videos decrypted with invalid key...")
-path1 = os.path.abspath(path_to_folder+'/'+video_title+'-out-key1.mkv')
-path2 = os.path.abspath(path_to_folder+'/'+video_title+'-out-key2.mkv')
-path3 = os.path.abspath(path_to_folder+'/'+video_title+'-out-key3.mkv')
-path4 = os.path.abspath(path_to_folder+'/'+video_title+'-out-key4.mkv')
-path5 = os.path.abspath(path_to_folder+'/'+video_title+'-out-key5.mkv')
+path1 = os.path.abspath('temp/'+video_title+'-out-key1.mkv')
+path2 = os.path.abspath('temp/'+video_title+'-out-key2.mkv')
+path3 = os.path.abspath('temp/'+video_title+'-out-key3.mkv')
+path4 = os.path.abspath('temp/'+video_title+'-out-key4.mkv')
+path5 = os.path.abspath('temp/'+video_title+'-out-key5.mkv')
 
-path1_size = os.path.getsize(path_to_folder+'/'+video_title+'-out-key1.mkv')
-path2_size = os.path.getsize(path_to_folder+'/'+video_title+'-out-key2.mkv')
-path3_size = os.path.getsize(path_to_folder+'/'+video_title+'-out-key3.mkv')
-path4_size = os.path.getsize(path_to_folder+'/'+video_title+'-out-key4.mkv')
-path5_size = os.path.getsize(path_to_folder+'/'+video_title+'-out-key5.mkv')
+path1_size = os.path.getsize('temp/'+video_title+'-out-key1.mkv')
+path2_size = os.path.getsize('temp/'+video_title+'-out-key2.mkv')
+path3_size = os.path.getsize('temp/'+video_title+'-out-key3.mkv')
+path4_size = os.path.getsize('temp/'+video_title+'-out-key4.mkv')
+path5_size = os.path.getsize('temp/'+video_title+'-out-key5.mkv')
 
 sizes = [path1_size, path2_size, path3_size, path4_size, path5_size]
 counter = Counter(sizes)
@@ -207,9 +227,12 @@ print("Video "+str(output+1)+" is the correct file, removing others...")
 for i in range(5):
     i += 1
     if i == output+1:
-        os.rename(path_to_folder+'/'+video_title+'-out-key'+str(i)+'.mkv', path_to_folder+'/'+video_title+'.mkv')
+        os.rename('temp/'+video_title+'-out-key'+str(i)+'.mkv', 'temp/'+video_title+'.mkv')
     else:
-        os.remove(path_to_folder+'/'+video_title+'-out-key'+str(i)+'.mkv')
+        os.remove('temp/'+video_title+'-out-key'+str(i)+'.mkv')
+
+# Move video to Downloads folder
+os.rename('temp/'+video_title+'.mkv', 'Downloads/'+video_title+'.mkv')
 
 print("Finished!")
 sys.exit(0)
