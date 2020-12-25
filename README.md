@@ -2,7 +2,7 @@
 Script to download from the RTÉ Player using the recent L3 decryptor. Only works on Windows. Decryptor is not included.
 It may not work for all media.
 
-Reddit thread
+[Reddit thread](https://www.reddit.com/r/teilifis/comments/kjzqyw/introducing_rtel3_a_python_script_to_download/)
 
 # Prerequisites
 
@@ -10,7 +10,7 @@ Reddit thread
 
 2. Download the Selenium Chrome WebDriver [here](https://chromedriver.chromium.org/downloads) and add it to your path environment variable.
 
-3. Paste the decryptor.crx file in the rte-L3 folder (provided separately, see reddit thread).
+3. Paste the decryptor.crx file in the rte-L3 folder (provided separately, see [reddit thread](https://www.reddit.com/r/teilifis/comments/kjzqyw/introducing_rtel3_a_python_script_to_download/)).
 
 # How to use
 `rtel3.py "URL"`
