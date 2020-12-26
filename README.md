@@ -6,7 +6,7 @@ Script to download from the RTÉ Player using the recent L3 decryptor. Only work
 # Prerequisites
 1. `pip install -r requirements.txt`
 
-2. Download the Selenium Chrome WebDriver [here](https://chromedriver.chromium.org/downloads) and paste it in the rte-L3 folder.
+2. Download the Selenium Chrome WebDriver [here](https://chromedriver.chromium.org/downloads) and paste it in the rte-L3 folder. You must have Google Chrome installed and ensure that the version of the webdriver matches that of the Chrome version you have installed.
 
 3. Paste the decryptor.crx file in the rte-L3 folder (provided separately, see reddit thread).
 
