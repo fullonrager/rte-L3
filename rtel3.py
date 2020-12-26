@@ -21,9 +21,40 @@ headless = False
 
 # *************************************
 os.system('cls')
-print("***  RTÉ Player Downloader (rte-L3)  ***")
-print("***     Developed by fullonrager     ***")
+print("***  RTÉ Player Downloader (rte-L3 v1.0.1)  ***")
+print("***        Developed by fullonrager         ***")
 print()
+
+def yes_or_no(question):
+    while "the answer is invalid":
+        reply = str(input(question+' (y/n): ')).lower().strip()
+        if reply[:1] == 'y':
+            return True
+        if reply[:1] == 'n':
+            return False
+
+def download_video():
+    print("Downloading video...")
+    os.system('python -m youtube_dl --fixup never -f bestvideo --output "temp/'+video_title+'.mp4" ' + '"'+video_mpd+'"')
+    print("Video downloaded successfully.")
+    print("Downloading audio...")
+    os.system('python -m youtube_dl --fixup never -f bestaudio --output "temp/'+video_title+'.m4a" ' + '"'+video_mpd+'"')
+    print("Audio downloaded successfully.")
+
+def cleanup():
+    print("Removing leftover files...")
+    if os.path.isfile('temp/'+video_title+'.mp4.part_urls'):
+        os.remove('temp/'+video_title+'.mp4.part_urls')
+    if os.path.isfile('temp/'+video_title+'.m4a.part_urls'):
+        os.remove('temp/'+video_title+'.m4a.part_urls')
+    if os.path.isfile('temp/'+video_title+'.mp4.part_urls.txt'):
+        os.remove('temp/'+video_title+'.mp4.part_urls.txt')
+    if os.path.isfile('temp/'+video_title+'.m4a.part_urls.txt'):
+        os.remove('temp/'+video_title+'.m4a.part_urls.txt')
+    if os.path.isfile('temp/'+video_title+'.m4a'):
+        os.remove('temp/'+video_title+'.m4a')
+    if os.path.isfile('temp/'+video_title+'.mp4'):
+        os.remove('temp/'+video_title+'.mp4')
 
 video_mpd = ""
 video_xml = ""
@@ -149,8 +180,19 @@ try:
     kid_key4 = keys[3][1]+":"+keys[3][0]
     kid_key5 = keys[4][1]+":"+keys[4][0]
 except IndexError:
-    print("Failed to get decryption key, try again.")
-    sys.exit()
+    print("Failed to get decryption key.")
+    print("It's possible that this media streams unencrypted.")
+    print()
+    if yes_or_no("Would you like to download anyway?"):
+        download_video()
+        print("Merging videos together...")
+        os.system('binaries\mkvmerge.exe -o "Downloads/'+video_title+'.mkv" "temp/'+video_title+'.mp4" "temp/'+video_title+'.m4a"')
+        cleanup()
+        print("Finished!")
+        sys.exit(0)
+    else:
+        print("Okay, exiting.")
+        sys.exit()
 
 print("Obtained five possible decryption keys (KID:Key):")
 print("Key 1: " + kid_key1)
@@ -160,16 +202,9 @@ print("Key 4: " + kid_key4)
 print("Key 5: " + kid_key5)
 print()
 
-print("Preparing to download video segments...")
-print("Downloading video...")
-os.system('python -m youtube_dl --fixup never -f bestvideo --output "temp/'+video_title+'.mp4" ' + '"'+video_mpd+'"')
-print("Video downloaded successfully.")
-print("Downloading audio...")
-os.system('python -m youtube_dl --fixup never -f bestaudio --output "temp/'+video_title+'.m4a" ' + '"'+video_mpd+'"')
-print("Audio downloaded successfully.")
+download_video()
 
 # Decryption stage
-
 print("Decrypting video and audio with first key...")
 os.system('binaries\mp4decrypt.exe --key '+kid_key1+' "temp/'+video_title+'.mp4" "temp/'+video_title+'-key1.mp4"')
 os.system('binaries\mp4decrypt.exe --key '+kid_key1+' "temp/'+video_title+'.m4a" "temp/'+video_title+'-key1.m4a"')
@@ -190,55 +225,66 @@ print("Decrypting video and audio with fifth key...")
 os.system('binaries\mp4decrypt.exe --key '+kid_key5+' "temp/'+video_title+'.mp4" "temp/'+video_title+'-key5.mp4"')
 os.system('binaries\mp4decrypt.exe --key '+kid_key5+' "temp/'+video_title+'.m4a" "temp/'+video_title+'-key5.m4a"')
 
-# Merging video and audio into Matroska, it will fail to merge those with invalid keys.
+# Compare file size of each output to determine which key was the correct one
+print("Determining video decrypted with correct key...")
+path1_mp4 = os.path.abspath('temp/'+video_title+'-key1.mp4')
+path2_mp4 = os.path.abspath('temp/'+video_title+'-key2.mp4')
+path3_mp4 = os.path.abspath('temp/'+video_title+'-key3.mp4')
+path4_mp4 = os.path.abspath('temp/'+video_title+'-key4.mp4')
+path5_mp4 = os.path.abspath('temp/'+video_title+'-key5.mp4')
 
-print("Merging videos together...")
-for i in range(5):
-    i += 1
-    os.system('binaries\mkvmerge.exe -o "temp/'+video_title+'-out-key'+str(i)+'.mkv" "temp/'+video_title+'-key'+str(i)+'.mp4" "temp/'+video_title+'-key'+str(i)+'.m4a"')
+path1_mp4_size = os.path.getsize('temp/'+video_title+'-key1.mp4')
+path2_mp4_size = os.path.getsize('temp/'+video_title+'-key2.mp4')
+path3_mp4_size = os.path.getsize('temp/'+video_title+'-key3.mp4')
+path4_mp4_size = os.path.getsize('temp/'+video_title+'-key4.mp4')
+path5_mp4_size = os.path.getsize('temp/'+video_title+'-key5.mp4')
 
-# Cleaning up leftover files
+sizes_mp4 = [path1_mp4_size, path2_mp4_size, path3_mp4_size, path4_mp4_size, path5_mp4_size]
+counter_mp4 = Counter(sizes_mp4)
+output_mp4 = sizes_mp4.index(min(counter_mp4, key=counter_mp4.get))
 
-print("Removing leftover files...")
-if os.path.isfile('temp/'+video_title+'.mp4/part_urls'):
-    os.remove('temp/'+video_title+'.mp4.part_urls')
-if os.path.isfile('temp/'+video_title+'.m4a.part_urls'):
-    os.remove('temp/'+video_title+'.m4a.part_urls')
+path1_m4a = os.path.abspath('temp/'+video_title+'-key1.mp4')
+path2_m4a = os.path.abspath('temp/'+video_title+'-key2.mp4')
+path3_m4a = os.path.abspath('temp/'+video_title+'-key3.mp4')
+path4_m4a = os.path.abspath('temp/'+video_title+'-key4.mp4')
+path5_m4a = os.path.abspath('temp/'+video_title+'-key5.mp4')
+
+path1_m4a_size = os.path.getsize('temp/'+video_title+'-key1.mp4')
+path2_m4a_size = os.path.getsize('temp/'+video_title+'-key2.mp4')
+path3_m4a_size = os.path.getsize('temp/'+video_title+'-key3.mp4')
+path4_m4a_size = os.path.getsize('temp/'+video_title+'-key4.mp4')
+path5_m4a_size = os.path.getsize('temp/'+video_title+'-key5.mp4')
+
+sizes_m4a = [path1_m4a_size, path2_m4a_size, path3_m4a_size, path4_m4a_size, path5_m4a_size]
+counter_m4a = Counter(sizes_m4a)
+output_m4a = sizes_m4a.index(min(counter_m4a, key=counter_m4a.get))
+
+if output_mp4 == output_m4a:
+    print("Video "+str(output_mp4+1)+" is the correct file, removing others...")
+else:
+    print("Key mismatch!")
+    print("Something went wrong, unable to automatically determine correct decryption key.")
+    print("Please check the files manually in the temp folder to see which key was the correct one. You can merge them manually.")
+    sys.exit()
+
 os.remove('temp/'+video_title+'.mp4')
 os.remove('temp/'+video_title+'.m4a')
-for i in range(5):
-    i += 1
-    os.remove('temp/'+video_title+'-key'+str(i)+'.mp4')
-    os.remove('temp/'+video_title+'-key'+str(i)+'.m4a')
-
-# Compare file size of each output to determine which key was the correct one
-print("Removing videos decrypted with invalid key...")
-path1 = os.path.abspath('temp/'+video_title+'-out-key1.mkv')
-path2 = os.path.abspath('temp/'+video_title+'-out-key2.mkv')
-path3 = os.path.abspath('temp/'+video_title+'-out-key3.mkv')
-path4 = os.path.abspath('temp/'+video_title+'-out-key4.mkv')
-path5 = os.path.abspath('temp/'+video_title+'-out-key5.mkv')
-
-path1_size = os.path.getsize('temp/'+video_title+'-out-key1.mkv')
-path2_size = os.path.getsize('temp/'+video_title+'-out-key2.mkv')
-path3_size = os.path.getsize('temp/'+video_title+'-out-key3.mkv')
-path4_size = os.path.getsize('temp/'+video_title+'-out-key4.mkv')
-path5_size = os.path.getsize('temp/'+video_title+'-out-key5.mkv')
-
-sizes = [path1_size, path2_size, path3_size, path4_size, path5_size]
-counter = Counter(sizes)
-output = sizes.index(min(counter, key=counter.get))
-print("Video "+str(output+1)+" is the correct file, removing others...")
 
 for i in range(5):
     i += 1
-    if i == output+1:
-        os.rename('temp/'+video_title+'-out-key'+str(i)+'.mkv', 'temp/'+video_title+'.mkv')
+    if i == output_mp4+1:
+        os.rename('temp/'+video_title+'-key'+str(i)+'.mp4', 'temp/'+video_title+'.mp4')
+        os.rename('temp/'+video_title+'-key'+str(i)+'.m4a', 'temp/'+video_title+'.m4a')
     else:
-        os.remove('temp/'+video_title+'-out-key'+str(i)+'.mkv')
+        os.remove('temp/'+video_title+'-key'+str(i)+'.mp4')
+        os.remove('temp/'+video_title+'-key'+str(i)+'.m4a')
 
-# Move video to Downloads folder
-os.rename('temp/'+video_title+'.mkv', 'Downloads/'+video_title+'.mkv')
+# Merging video and audio into Matroska
 
+print("Merging videos together...")
+os.system('binaries\mkvmerge.exe -o "Downloads/'+video_title+'.mkv" "temp/'+video_title+'.mp4" "temp/'+video_title+'.m4a"')
+
+# Cleaning up leftover files
+cleanup()
 print("Finished!")
 sys.exit(0)
