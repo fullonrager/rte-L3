@@ -21,7 +21,7 @@ headless = False
 
 # *************************************
 os.system('cls')
-print("***  RTÉ Player Downloader (rte-L3 v1.0.1)  ***")
+print("***  RTÉ Player Downloader (rte-L3 v1.0.2)  ***")
 print("***        Developed by fullonrager         ***")
 print()
 
@@ -243,17 +243,17 @@ sizes_mp4 = [path1_mp4_size, path2_mp4_size, path3_mp4_size, path4_mp4_size, pat
 counter_mp4 = Counter(sizes_mp4)
 output_mp4 = sizes_mp4.index(min(counter_mp4, key=counter_mp4.get))
 
-path1_m4a = os.path.abspath('temp/'+video_title+'-key1.mp4')
-path2_m4a = os.path.abspath('temp/'+video_title+'-key2.mp4')
-path3_m4a = os.path.abspath('temp/'+video_title+'-key3.mp4')
-path4_m4a = os.path.abspath('temp/'+video_title+'-key4.mp4')
-path5_m4a = os.path.abspath('temp/'+video_title+'-key5.mp4')
+path1_m4a = os.path.abspath('temp/'+video_title+'-key1.m4a')
+path2_m4a = os.path.abspath('temp/'+video_title+'-key2.m4a')
+path3_m4a = os.path.abspath('temp/'+video_title+'-key3.m4a')
+path4_m4a = os.path.abspath('temp/'+video_title+'-key4.m4a')
+path5_m4a = os.path.abspath('temp/'+video_title+'-key5.m4a')
 
-path1_m4a_size = os.path.getsize('temp/'+video_title+'-key1.mp4')
-path2_m4a_size = os.path.getsize('temp/'+video_title+'-key2.mp4')
-path3_m4a_size = os.path.getsize('temp/'+video_title+'-key3.mp4')
-path4_m4a_size = os.path.getsize('temp/'+video_title+'-key4.mp4')
-path5_m4a_size = os.path.getsize('temp/'+video_title+'-key5.mp4')
+path1_m4a_size = os.path.getsize('temp/'+video_title+'-key1.m4a')
+path2_m4a_size = os.path.getsize('temp/'+video_title+'-key2.m4a')
+path3_m4a_size = os.path.getsize('temp/'+video_title+'-key3.m4a')
+path4_m4a_size = os.path.getsize('temp/'+video_title+'-key4.m4a')
+path5_m4a_size = os.path.getsize('temp/'+video_title+'-key5.m4a')
 
 sizes_m4a = [path1_m4a_size, path2_m4a_size, path3_m4a_size, path4_m4a_size, path5_m4a_size]
 counter_m4a = Counter(sizes_m4a)
