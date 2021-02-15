@@ -1,5 +1,5 @@
 # rte-L3
-Script to download from the RTÉ Player using the recent L3 decryptor. Only works on Windows. This script requires tomer8007's [widevine-l3-decryptor](https://github.com/tomer8007/widevine-l3-decryptor).
+Script to download from the RTÉ Player and Virgin Media Player using the recent L3 decryptor. Only works on Windows. This script requires tomer8007's [widevine-l3-decryptor](https://github.com/tomer8007/widevine-l3-decryptor).
 
 # Prerequisites
 1. `pip install -r requirements.txt`
