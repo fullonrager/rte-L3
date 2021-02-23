@@ -69,7 +69,7 @@ def cleanup():
 
 def rte():
     os.system('cls')
-    print("***  RTÉ Player Downloader (rte-L3 v1.1)  ***")
+    print("***  RTÉ Player Downloader (rte-L3 v1.2)  ***")
     print("***       Developed by fullonrager        ***")
 
     print("\nLoading page...")
@@ -114,7 +114,7 @@ def rte():
 
     time.sleep(3)
 
-    rte_xml = re.compile(r"(https\:\/\/link\.eu\.theplatform\.com\/s\/).+(&formats=(mpeg-dash|m3u))")
+    rte_xml = re.compile(r"(https\://link\.eu\.theplatform\.com/s/).+(&formats=(mpeg-dash|m3u))")
     for request in driver.requests:
         if rte_xml.match(str(request)):
             video_xml = request.url
@@ -139,16 +139,18 @@ def rte():
     except requests.exceptions.MissingSchema:
         driver.quit()
         sys.exit("Request timed out, try again.")
+    except UnboundLocalError:
+        driver.quit()
+        sys.exit("Request timed out, try again.")
 
-    print()
     try:
         video_title = video_title_element.attrs["content"]
-        print(u"Video title = " + video_title)
         # Remove characters forbidden on Windows
         video_title = re.sub(r'[\\/*?:"<>|]',"",video_title)
+        print("\nVideo title = " + video_title)
     except AttributeError:
         video_title = temp_title
-        print("Unable to extract video title, using generated title instead ("+video_title+".mkv)")
+        print("Unable to extract video title, using generated title instead ("+video_title+")")
 
     if os.path.isfile("Downloads/"+video_title+".mkv"):
         print("\nA video with this filename already exists ("+video_title+".mkv)")
@@ -184,7 +186,7 @@ def rte():
         if yes_or_no("Would you like to download anyway?"):
             download_video(video_mpd)
             print("Merging videos together...")
-            os.system(r'binaries\mkvmerge.exe -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'.mp4" "temp/'+temp_title+'.m4a"')
+            os.system(r'binaries\mkvmerge.exe -q -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'.mp4" "temp/'+temp_title+'.m4a"')
             cleanup()
             sys.exit("Finished!")
         else:
@@ -207,7 +209,7 @@ def rte():
 
     # Merge video and audio into Matroska
     print("Merging video and audio together...")
-    os.system(r'binaries\mkvmerge.exe -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'-out.mp4" "temp/'+temp_title+'-out.m4a"')
+    os.system(r'binaries\mkvmerge.exe -q -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'-out.mp4" "temp/'+temp_title+'-out.m4a"')
 
     print("Saved as: "+video_title+".mkv")
 
@@ -217,7 +219,7 @@ def rte():
 
 def virgin():
     os.system('cls')
-    print("***  Virgin Media Player Downloader (rte-L3 v1.1)  ***")
+    print("***  Virgin Media Player Downloader (rte-L3 v1.2)  ***")
     print("***            Developed by fullonrager            ***")
 
     print("\nLoading page...")
@@ -227,8 +229,7 @@ def virgin():
     driver = webdriver.Chrome(options=options)
     driver.get(url)
 
-    virgin_regex = re.compile(r"https:\/\/manifest\.prod\.boltdns\.net\/manifest\/.+%3D%3D")
-
+    virgin_regex = re.compile(r"https://manifest\.prod\.boltdns\.net/manifest/.+%3D%3D")
     time.sleep(5)
 
     for request in driver.requests:
@@ -246,13 +247,77 @@ def virgin():
     video_title = re.sub(r'[\\/*?:"<>|]',"",video_title)
     video_title = re.sub(r'\n',"",video_title)
 
+    key_string = driver.find_element_by_tag_name("body").get_attribute("innerText")
+    encrypted = False
+    key = re.findall(r"WidevineDecryptor: Found key: (\w+) \(KID=(\w+)\)", key_string)
+
+    if len(key_string) > 110:
+        print("This video streams unencrypted - no decryption key required.\n")
+    else:
+        encrypted = True
+        try:
+            kid_key = key[0][1]+":"+key[0][0]
+        except IndexError:
+            driver.quit()
+            print("Failed to get decryption key, try again.")
+        print("Key: "+kid_key)
+
+    driver.quit()
+
     if os.path.isfile("Downloads/"+video_title+".mkv"):
         print("\nA video with this filename already exists ("+video_title+".mkv)")
         if yes_or_no("Do you want to continue and remove it?"):
             os.remove('Downloads/'+video_title+'.mkv')
         else:
-            cleanup()
             sys.exit("Okay, exiting.")
+
+    download_video(video_mpd)
+
+    if encrypted:
+        print("Decrypting video and audio...")
+        os.system(r'binaries\mp4decrypt.exe --key '+kid_key+' "temp/'+temp_title+'.mp4" "temp/'+temp_title+'-out.mp4"')
+        os.system(r'binaries\mp4decrypt.exe --key '+kid_key+' "temp/'+temp_title+'.m4a" "temp/'+temp_title+'-out.m4a"')
+        print("Merging video and audio together...")
+        os.system(r'binaries\mkvmerge.exe -q -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'-out.mp4" "temp/'+temp_title+'-out.m4a"')
+    else:
+        print("Merging video and audio together...")
+        os.system(r'binaries\mkvmerge.exe -q -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'.mp4" "temp/'+temp_title+'.m4a"')
+
+    print("Saved as: "+video_title+".mkv")
+
+    # Clean up leftover files
+    cleanup()
+    sys.exit("Finished!")
+
+def tg4():
+    os.system('cls')
+    print("***  TG4 Player Downloader (rte-L3 v1.2)  ***")
+    print("***       Developed by fullonrager        ***")
+
+    print("\nLoading page...")
+
+    options = webdriver.ChromeOptions()
+    options.add_experimental_option("excludeSwitches", ["enable-logging"])
+    options.add_extension("decryptor.crx")
+    driver = webdriver.Chrome(options=options)
+    driver.get(url)
+
+    tg4_regex = re.compile(r"https://manifest\.prod\.boltdns\.net/manifest/.*%3D%3D")
+    tg4_ssai_regex = re.compile(r"https://ssaimanifest\.prod\.boltdns\.net/.*%3D%3D")
+
+    resp = requests.get(url)
+    soup = BeautifulSoup(resp.text, 'lxml')
+    title = soup.find("title")
+    video_title = title.text[:-47]
+    video_title = re.sub(r'[\\/*?:"<>|]',"",video_title)
+
+    time.sleep(3)
+
+    for request in driver.requests:
+        if tg4_regex.match(str(request)) or tg4_ssai_regex.match(str(request)):
+            video_mpd = request.url
+            print("\nFound MPD URL: " + video_mpd+"\n")
+            break
 
     key_string = driver.find_element_by_tag_name("body").get_attribute("innerText")
 
@@ -266,15 +331,24 @@ def virgin():
         if yes_or_no("Would you like to download anyway?"):
             download_video(video_mpd)
             print("Merging videos together...")
-            os.system(r'binaries\mkvmerge.exe -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'.mp4" "temp/'+temp_title+'.m4a"')
+            os.system(r'binaries\mkvmerge.exe -q -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'.mp4" "temp/'+temp_title+'.m4a"')
             cleanup()
             print("Saved as: "+video_title+".mkv")
             sys.exit("Finished!")
         else:
             sys.exit("Okay, exiting.")
 
-    print("Key: "+kid_key)
+    print("Key: "+kid_key+"\n")
+    
     driver.quit()
+
+    if os.path.isfile("Downloads/"+video_title+".mkv"):
+        print("\nA video with this filename already exists ("+video_title+".mkv)")
+        if yes_or_no("Do you want to continue and remove it?"):
+            os.remove('Downloads/'+video_title+'.mkv')
+        else:
+            sys.exit("Okay, exiting.")
+
     download_video(video_mpd)
 
     print("Decrypting video and audio...")
@@ -282,7 +356,7 @@ def virgin():
     os.system(r'binaries\mp4decrypt.exe --key '+kid_key+' "temp/'+temp_title+'.m4a" "temp/'+temp_title+'-out.m4a"')
 
     print("Merging video and audio together...")
-    os.system(r'binaries\mkvmerge.exe -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'-out.mp4" "temp/'+temp_title+'-out.m4a"')
+    os.system(r'binaries\mkvmerge.exe -q -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'-out.mp4" "temp/'+temp_title+'-out.m4a"')
 
     print("Saved as: "+video_title+".mkv")
 
@@ -300,6 +374,8 @@ try:
         rte()
     elif url[12:18] == "virgin":
         virgin()
+    elif url[12:15] == "tg4":
+        tg4()
     else:
         sys.exit('This URL is not supported.\nNote: URLs must begin with "https://www."')
 
