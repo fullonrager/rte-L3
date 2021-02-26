@@ -6,7 +6,7 @@ Script to download from the RTÉ Player, TG4 Player, and Virgin Media Player usi
 
 2. Download the Selenium Chrome WebDriver [here](https://chromedriver.chromium.org/downloads) and paste it in the rte-L3 folder. You must have Google Chrome installed and ensure that the version of the webdriver matches that of the Chrome version you have installed.
 
-3. In the decryptor's "content_key_decryption.js" file on line 102, replace it with `document.write("WidevineDecryptor: Found key: " + toHexString(decryptedKey) + " (KID=" + toHexString(keyId) + ")");`.
+3. In the decryptor's "content_key_decryption.js" file on line 102, replace `console.log` with `document.write`.
 
 4. In Chrome, go to the Extensions page and click "Pack extension". Enter the location of the widevine decryptor folder with the modified content_key_decryption.js.
 
