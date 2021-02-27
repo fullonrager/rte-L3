@@ -13,7 +13,13 @@ Script to download from the RTÉ Player, TG4 Player, and Virgin Media Player usi
 5. Paste the outputted .crx file in the rte-L3 folder and rename it to "decryptor.crx".
 
 # How to use
+To download one video:
+
 `python rtel3.py "URL"`
+
+To download multiple videos in one command:
+
+`python rtel3.py "URL1" "URL2" "URL3"`
 
 # Disclaimer
 This is for educational purposes only. According to RTÉ's terms of service, "You may not broadcast, copy, download, frame, reproduce, republish, post, transmit, merge, edit, adapt, resell, re-use, produce summaries or otherwise use RTÉ.ie and/or its content in any way **except for your own personal, non-commercial, non- business use**." Use at your own risk.
