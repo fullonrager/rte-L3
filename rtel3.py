@@ -32,6 +32,8 @@ i=0
 k=0
 multiple = False
 keys = []
+failed = False
+failed_list = []
 # Generate random temporary video title to prevent issues with certain characters
 temp_title = "rte_L3_video_"+str(randint(1, 999))
 
@@ -69,11 +71,17 @@ def cleanup():
         os.remove('temp/'+temp_title+'-out.mp4')
     if os.path.isfile('temp/'+temp_title+'-out.m4a'):
         os.remove('temp/'+temp_title+'-out.m4a')
+    if os.path.isfile('temp/'+temp_title+'.vtt'):
+        os.remove('temp/'+temp_title+'.vtt')
+    if os.path.isfile('temp/'+temp_title+'-tg4-sub-one.vtt'):
+        os.remove('temp/'+temp_title+'-tg4-sub-one.vtt')
+    if os.path.isfile('temp/'+temp_title+'-tg4-sub-two.vtt'):
+        os.remove('temp/'+temp_title+'-tg4-sub-two.vtt')
 
-def rte(i,k):
+def rte(url,i,k):
     if not multiple or i == 1:
         os.system('cls')
-        print("***  RTÉ Player Downloader (rte-L3 v1.2.1)  ***")
+        print("***  RTÉ Player Downloader (rte-L3 v1.2.2)  ***")
         print("***        Developed by fullonrager         ***\n")
     if multiple:
         print("Downloading video {} of {} from RTÉ Player...".format(i, video_count))
@@ -93,7 +101,7 @@ def rte(i,k):
         else:
             print("Request timed out, trying again in 2 minutes.\n")
             time.sleep(120)
-            rte(i,k)
+            rte(url,i,k)
             return
 
     print("Accepting necessary cookies...")
@@ -109,7 +117,7 @@ def rte(i,k):
         else:
             print("Request timed out, trying again in 2 minutes.\n")
             time.sleep(120)
-            rte(i,k)
+            rte(url,i,k)
             return
 
     WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.CLASS_NAME, 'btn')))
@@ -125,7 +133,7 @@ def rte(i,k):
         else:
             print("Request timed out, trying again in 2 minutes.\n")
             time.sleep(120)
-            rte(i,k)
+            rte(url,i,k)
             return
     
     time.sleep(2)
@@ -156,6 +164,7 @@ def rte(i,k):
             video_mpd = request.url
             break
 
+    # Extract the video title
     try:
         req = requests.get(video_xml, allow_redirects=True)
         html = codecs.decode(req.content, "utf-8")
@@ -168,7 +177,7 @@ def rte(i,k):
         else:
             print("Request timed out, trying again in 5 minutes.\n")
             time.sleep(300)
-            rte(i,k)
+            rte(url,i,k)
             return
 
     except UnboundLocalError:
@@ -178,8 +187,19 @@ def rte(i,k):
         else:
             print("Request timed out, trying again in 2 minutes.\n")
             time.sleep(120)
-            rte(i,k)
+            rte(url,i,k)
             return
+
+    # Extract subtitles if any
+    rte_sub = video_embed_xml.find("textstream")
+    try:
+        sub_url = rte_sub['src']
+        subtitles = True
+        print("Found subtitles, will merge into video.")
+        grab_rte_vtt = requests.get(sub_url)
+        open('temp/{}.vtt'.format(temp_title), 'wb').write(grab_rte_vtt.content)
+    except TypeError:
+        subtitles = False
 
     try:
         video_title = video_title_element.attrs["content"]
@@ -190,6 +210,7 @@ def rte(i,k):
         video_title = temp_title
         print("Unable to extract video title, using generated title instead ("+video_title+")")
 
+    # Check if video is already downloaded
     if os.path.isfile("Downloads/"+video_title+".mkv"):
         if not multiple:
             print("\nA video with this filename already exists ("+video_title+".mkv)")
@@ -200,6 +221,7 @@ def rte(i,k):
                 sys.exit("Okay, exiting.")
         else:
             print("This video is already downloaded, skipping...\n")
+            failed_list.append(url)
             driver.quit()
             return
 
@@ -209,7 +231,7 @@ def rte(i,k):
         else:
             print("MPD URL not found, trying again in 2 minutes.\n")
             time.sleep(120)
-            rte(i,k)
+            rte(url,i,k)
             return
     else:
         print("\nFound MPD URL: " + video_mpd +"\n")
@@ -248,7 +270,11 @@ def rte(i,k):
                 print("Failed to get decryption key again, downloading anyway...\n")
                 download_video(video_mpd)
                 print("Merging videos together...")
-                os.system(r'binaries\mkvmerge.exe -q -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'.mp4" "temp/'+temp_title+'.m4a"')
+                if subtitles:
+                    os.system(r'binaries\mkvmerge.exe -q -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'.mp4" "temp/'+temp_title+'.m4a" "temp/'+temp_title+'.vtt"')
+                else:
+                    os.system(r'binaries\mkvmerge.exe -q -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'.mp4" "temp/'+temp_title+'.m4a"')
+
                 cleanup()
                 print("Finished downloading video {} of {} from RTÉ Player.".format(i, video_count))
                 return
@@ -257,7 +283,7 @@ def rte(i,k):
                 print("It's possible that this media streams unencrypted.\n")
                 print("Trying again in 2 minutes.\nIf this happens again, I will assume it streams unencrypted.\n")
                 time.sleep(120)
-                rte(i,k)
+                rte(url,i,k)
                 return
 
     print("Obtained five possible decryption keys (KID:Key):")
@@ -275,9 +301,13 @@ def rte(i,k):
     os.system(r'binaries\mp4decrypt.exe --key '+kid_key1+' --key '+kid_key2+' --key '+kid_key3+' --key '+kid_key4+' --key '+kid_key5+' "temp/'+temp_title+'.mp4" "temp/'+temp_title+'-out.mp4"')
     os.system(r'binaries\mp4decrypt.exe --key '+kid_key1+' --key '+kid_key2+' --key '+kid_key3+' --key '+kid_key4+' --key '+kid_key5+' "temp/'+temp_title+'.m4a" "temp/'+temp_title+'-out.m4a"')
 
-    # Merge video and audio into Matroska
-    print("Merging video and audio together...")
-    os.system(r'binaries\mkvmerge.exe -q -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'-out.mp4" "temp/'+temp_title+'-out.m4a"')
+    # Merge video and audio (and subtitles if any) into Matroska
+    if subtitles:
+        print("Merging video, audio, and subtitles together...")
+        os.system(r'binaries\mkvmerge.exe -q -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'-out.mp4" "temp/'+temp_title+'-out.m4a" "temp/'+temp_title+'.vtt"')
+    else:
+        print("Merging video and audio together...")
+        os.system(r'binaries\mkvmerge.exe -q -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'-out.mp4" "temp/'+temp_title+'-out.m4a"')
 
     print("Saved as: "+video_title+".mkv")
 
@@ -288,10 +318,10 @@ def rte(i,k):
     else:
         print("Finished downloading video {} of {} from RTÉ Player.\n".format(i, video_count))
 
-def virgin(i):
+def virgin(url,i):
     if not multiple or i == 1:
         os.system('cls')
-        print("***  Virgin Media Player Downloader (rte-L3 v1.2.1)  ***")
+        print("***  Virgin Media Player Downloader (rte-L3 v1.2.2)  ***")
         print("***             Developed by fullonrager             ***\n")
     if multiple:
         print("Downloading video {} of {} from Virgin Media Player...".format(i, video_count)) 
@@ -348,6 +378,7 @@ def virgin(i):
                 sys.exit("Okay, exiting.")
         else:
             print("This video is already downloaded, skipping...\n")
+            failed_list.append(url)
             driver.quit()
             return
 
@@ -372,10 +403,10 @@ def virgin(i):
     else:
         print("Finished downloading video {} of {} from Virgin Media Player.\n".format(i, video_count))
 
-def tg4(i,k):
+def tg4(url,i,k):
     if not multiple or i == 1:
         os.system('cls')
-        print("***  TG4 Player Downloader (rte-L3 v1.2.1)  ***")
+        print("***  TG4 Player Downloader (rte-L3 v1.2.2)  ***")
         print("***        Developed by fullonrager         ***\n")
     if multiple:
         print("Downloading video {} of {} from TG4 Player...".format(i, video_count))
@@ -394,8 +425,24 @@ def tg4(i,k):
     resp = requests.get(url)
     soup = BeautifulSoup(resp.text, 'lxml')
     title = soup.find("title")
-    video_title = title.text[:-47]
+    if url[19:21] == "ga":
+        video_title = title.text[:-51]
+    else:
+        video_title = title.text[:-47]
     video_title = re.sub(r'[\\/*?:"<>|]',"",video_title)
+
+    if os.path.isfile("Downloads/"+video_title+".mkv"):
+        if not multiple:
+            print("\nA video with this filename already exists ("+video_title+".mkv)")
+            if yes_or_no("Do you want to continue and remove it?"):
+                os.remove('Downloads/'+video_title+'.mkv')
+            else:
+                sys.exit("Okay, exiting.")
+        else:
+            print("This video is already downloaded, skipping...\n")
+            failed_list.append(url)
+            driver.quit()
+            return
 
     time.sleep(3)
 
@@ -404,6 +451,37 @@ def tg4(i,k):
             video_mpd = request.url
             print("\nFound MPD URL: " + video_mpd+"\n")
             break
+
+    try:
+        tg4_xml = requests.get(video_mpd)
+    except UnboundLocalError:
+        if not multiple:
+            driver.quit()
+            sys.exit("Error: MPD URL not found, try again.")
+        else:
+            driver.quit()
+            print("MPD URL not found, trying again in 2 minutes.\n")
+            time.sleep(120)
+            tg4(url,i,k)
+            return
+
+    tg4_xml_soup = BeautifulSoup(tg4_xml.text, 'xml')
+    tg4_subs_finder = tg4_xml_soup.find_all("BaseURL")
+    tg4_bc_sub_regex = re.compile(r"https://.*\.brightcove\.com/.*\.vtt")
+    tg4_sub_regex = re.compile(r"https://tg4bcbolt-\w\.akamaihd\.net/media/.*\.vtt")
+    tg4_subs = []
+    for tg4_vtt_url in tg4_subs_finder:
+        if tg4_sub_regex.match(tg4_vtt_url.text) or tg4_bc_sub_regex.match(tg4_vtt_url.text) and tg4_vtt_url.text not in tg4_subs:
+            tg4_subs.append(tg4_vtt_url.text)
+
+    # TG4 will have either GA, EN, or both, so this saves them
+    if len(tg4_subs) > 0:
+        grab_tg4_vtt = requests.get(tg4_subs[0])
+        open('temp/{}-tg4-sub-one.vtt'.format(temp_title), 'wb').write(grab_tg4_vtt.content)
+        print("Found subtitles, will merge into video.")
+    if len(tg4_subs) > 1:
+        grab_tg4_vtt_two = requests.get(tg4_subs[1])
+        open('temp/{}-tg4-sub-two.vtt'.format(temp_title), 'wb').write(grab_tg4_vtt_two.content)
 
     key_string = driver.find_element_by_tag_name("body").get_attribute("innerText")
 
@@ -429,8 +507,15 @@ def tg4(i,k):
             if k > 1:
                 print("Failed to get decryption key again, downloading anyway...")
                 download_video(video_mpd)
-                print("Merging videos together...")
-                os.system(r'binaries\mkvmerge.exe -q -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'.mp4" "temp/'+temp_title+'.m4a"')
+                if len(tg4_subs) == 1:
+                    print("Merging video, audio, and subtitles together...")
+                    os.system(r'binaries\mkvmerge.exe -q -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'.mp4" "temp/'+temp_title+'.m4a" "temp/'+temp_title+'-tg4-sub-one.vtt"')
+                elif len(tg4_subs) == 2:
+                    print("Merging video, audio, and subtitles together...")
+                    os.system(r'binaries\mkvmerge.exe -q -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'.mp4" "temp/'+temp_title+'.m4a" "temp/'+temp_title+'-tg4-sub-one.vtt" "temp/'+temp_title+'-tg4-sub-two.vtt"')
+                else:
+                    print("Merging video and audio together...")
+                    os.system(r'binaries\mkvmerge.exe -q -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'.mp4" "temp/'+temp_title+'.m4a"')
                 cleanup()
                 print("Finished downloading video {} of {} from TG4 Player.".format(i, video_count))
                 return
@@ -439,24 +524,12 @@ def tg4(i,k):
                 print("It's possible that this media streams unencrypted.\n")
                 print("Trying again in 2 minutes.\nIf this happens again, I will assume it streams unencrypted.")
                 time.sleep(120)
-                tg4(i,k)
+                tg4(url,i,k)
                 return
 
     print("Key: "+kid_key+"\n")
     
     driver.quit()
-
-    if os.path.isfile("Downloads/"+video_title+".mkv"):
-        if not multiple:
-            print("\nA video with this filename already exists ("+video_title+".mkv)")
-            if yes_or_no("Do you want to continue and remove it?"):
-                os.remove('Downloads/'+video_title+'.mkv')
-            else:
-                sys.exit("Okay, exiting.")
-        else:
-            print("This video is already downloaded, skipping...\n")
-            driver.quit()
-            return
 
     download_video(video_mpd)
 
@@ -464,8 +537,15 @@ def tg4(i,k):
     os.system(r'binaries\mp4decrypt.exe --key '+kid_key+' "temp/'+temp_title+'.mp4" "temp/'+temp_title+'-out.mp4"')
     os.system(r'binaries\mp4decrypt.exe --key '+kid_key+' "temp/'+temp_title+'.m4a" "temp/'+temp_title+'-out.m4a"')
 
-    print("Merging video and audio together...")
-    os.system(r'binaries\mkvmerge.exe -q -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'-out.mp4" "temp/'+temp_title+'-out.m4a"')
+    if len(tg4_subs) == 1:
+        print("Merging video, audio, and subtitles together...")
+        os.system(r'binaries\mkvmerge.exe -q -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'-out.mp4" "temp/'+temp_title+'-out.m4a" "temp/'+temp_title+'-tg4-sub-one.vtt"')
+    elif len(tg4_subs) == 2:
+        print("Merging video, audio, and subtitles together...")
+        os.system(r'binaries\mkvmerge.exe -q -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'-out.mp4" "temp/'+temp_title+'-out.m4a" "temp/'+temp_title+'-tg4-sub-one.vtt" "temp/'+temp_title+'-tg4-sub-two.vtt"')
+    else:
+        print("Merging video and audio together...")
+        os.system(r'binaries\mkvmerge.exe -q -o "Downloads/'+video_title+'.mkv" "temp/'+temp_title+'-out.mp4" "temp/'+temp_title+'-out.m4a"')
 
     print("Saved as: "+video_title+".mkv")
 
@@ -484,19 +564,29 @@ if len(sys.argv) > 2:
         k = 0
         try:
             if url[12:15] == "rte":
-                rte(i,k)
+                rte(url,i,k)
             elif url[12:18] == "virgin":
-                virgin(i)
+                virgin(url,i)
             elif url[12:15] == "tg4":
-                tg4(i,k)
+                tg4(url,i,k)
             else:
                 print('Error: This URL is not supported.\nNote: URLs must begin with "https://www."')
+                failed_list.append(url)
+                failed = True
                 continue
         except IndexError:
             print('Error: This URL is not supported.\nNote: URLs must begin with "https://www."')
+            failed_list.append(url)
+            failed = True
             continue
 
-    sys.exit("Finished downloading {} videos!".format(video_count))
+    if not failed:
+        sys.exit("\nFinished downloading {} videos!".format(video_count))
+    else:
+        print("\nFinished downloading {} of {} videos!\nFailed to download the following URL(s):".format(video_count-len(failed_list), video_count))
+        for video in failed_list:
+            print(video)
+        sys.exit()
 
 else:
     try:
@@ -506,11 +596,11 @@ else:
 
     try:
         if url[12:15] == "rte":
-            rte(i,k)
+            rte(url,i,k)
         elif url[12:18] == "virgin":
-            virgin(i)
+            virgin(url,i)
         elif url[12:15] == "tg4":
-            tg4(i,k)
+            tg4(url,i,k)
         else:
             sys.exit('Error: This URL is not supported.\nNote: URLs must begin with "https://www."')
 
