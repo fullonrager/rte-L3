@@ -81,7 +81,7 @@ def cleanup():
 def rte(url,i,k):
     if not multiple or i == 1:
         os.system('cls')
-        print("***  RTÉ Player Downloader (rte-L3 v1.2.2)  ***")
+        print("***  RTÉ Player Downloader (rte-L3 v1.2.3)  ***")
         print("***        Developed by fullonrager         ***\n")
     if multiple:
         print("Downloading video {} of {} from RTÉ Player...".format(i, video_count))
@@ -321,7 +321,7 @@ def rte(url,i,k):
 def virgin(url,i):
     if not multiple or i == 1:
         os.system('cls')
-        print("***  Virgin Media Player Downloader (rte-L3 v1.2.2)  ***")
+        print("***  Virgin Media Player Downloader (rte-L3 v1.2.3)  ***")
         print("***             Developed by fullonrager             ***\n")
     if multiple:
         print("Downloading video {} of {} from Virgin Media Player...".format(i, video_count)) 
@@ -333,6 +333,13 @@ def virgin(url,i):
     options.add_extension("decryptor.crx")
     driver = webdriver.Chrome(options=options)
     driver.get(url)
+
+    # Bypass mature content pop-up if needed
+    try:
+        driver.find_element_by_id('age_check_box').click()
+        driver.find_element_by_class_name('submit-button').click()
+    except selenium.common.exceptions.NoSuchElementException:
+        pass
 
     virgin_regex = re.compile(r"https://manifest\.prod\.boltdns\.net/manifest/.+%3D%3D")
     time.sleep(5)
@@ -382,7 +389,16 @@ def virgin(url,i):
             driver.quit()
             return
 
-    download_video(video_mpd)
+    try:
+        download_video(video_mpd)
+    except UnboundLocalError:
+        if not multiple:
+            sys.exit("Error: Failed to obtain video MPD URL, try again.")
+        else:
+            print("Failed to obtain video MPD URL, trying again in 2 minutes.\n")
+            time.sleep(120)
+            virgin(url,i)
+            return
 
     if encrypted:
         print("Decrypting video and audio...")
@@ -406,7 +422,7 @@ def virgin(url,i):
 def tg4(url,i,k):
     if not multiple or i == 1:
         os.system('cls')
-        print("***  TG4 Player Downloader (rte-L3 v1.2.2)  ***")
+        print("***  TG4 Player Downloader (rte-L3 v1.2.3)  ***")
         print("***        Developed by fullonrager         ***\n")
     if multiple:
         print("Downloading video {} of {} from TG4 Player...".format(i, video_count))
@@ -484,8 +500,10 @@ def tg4(url,i,k):
         open('temp/{}-tg4-sub-two.vtt'.format(temp_title), 'wb').write(grab_tg4_vtt_two.content)
 
     key_string = driver.find_element_by_tag_name("body").get_attribute("innerText")
-
     key = re.findall(r"WidevineDecryptor: Found key: (\w+) \(KID=(\w+)\)", key_string)
+    
+    # Allow time to receive decryption keys
+    time.sleep(3)
     try:
         kid_key = key[0][1]+":"+key[0][0]
     except IndexError:
@@ -592,7 +610,7 @@ else:
     try:
         url = sys.argv[1]
     except IndexError:
-        sys.exit("Error: Please enter a URL to download from.")
+        url = input("Enter the URL you wish to download from: ")
 
     try:
         if url[12:15] == "rte":
@@ -601,6 +619,8 @@ else:
             virgin(url,i)
         elif url[12:15] == "tg4":
             tg4(url,i,k)
+        elif url == "no":
+            sys.exit(":(")
         else:
             sys.exit('Error: This URL is not supported.\nNote: URLs must begin with "https://www."')
 
