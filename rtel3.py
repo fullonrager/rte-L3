@@ -26,12 +26,9 @@ if not os.path.isdir('temp'):
 if not os.path.isdir('Downloads'):
     os.mkdir('Downloads')
 
-video_mpd = ""
-video_xml = ""
 i=0
 k=0
 multiple = False
-keys = []
 failed = False
 failed_list = []
 # Generate random temporary video title to prevent issues with certain characters
@@ -81,7 +78,7 @@ def cleanup():
 def rte(url,i,k):
     if not multiple or i == 1:
         os.system('cls')
-        print("***  RTÉ Player Downloader (rte-L3 v1.2.3)  ***")
+        print("***  RTÉ Player Downloader (rte-L3 v1.2.4)  ***")
         print("***        Developed by fullonrager         ***\n")
     if multiple:
         print("Downloading video {} of {} from RTÉ Player...".format(i, video_count))
@@ -91,13 +88,17 @@ def rte(url,i,k):
     options.add_experimental_option("excludeSwitches", ["enable-logging"])
     options.add_extension("decryptor.crx")
     driver = webdriver.Chrome(options=options)
+    driver_version = driver.capabilities['chrome']['chromedriverVersion']
     driver.get(url)
 
+    if int(driver_version[0:2]) > 88:
+        sys.exit("\nError: Your installed version of Chrome is not compatible with this script.\nDowngrade Chrome (and your webdriver) to version 88.")
+        
     try:
         WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, 'onetrust-policy-text')))
     except selenium.common.exceptions.TimeoutException:
         if not multiple:
-            sys.exit("Error: Request timed out, try again later.")
+            sys.exit("\nError: Request timed out, try again later.")
         else:
             print("Request timed out, trying again in 2 minutes.\n")
             time.sleep(120)
@@ -113,7 +114,7 @@ def rte(url,i,k):
     except selenium.common.exceptions.TimeoutException:
         driver.quit()
         if not multiple:
-            sys.exit("Error: Request timed out, try again.")
+            sys.exit("\nError: Request timed out, try again.")
         else:
             print("Request timed out, trying again in 2 minutes.\n")
             time.sleep(120)
@@ -129,7 +130,7 @@ def rte(url,i,k):
         driver.find_elements_by_class_name('ic-play-white')[0].click()
     except selenium.common.exceptions.NoSuchElementException:
         if not multiple:
-            sys.exit("Error: Request timed out, try again later.")
+            sys.exit("\nError: Request timed out, try again later.")
         else:
             print("Request timed out, trying again in 2 minutes.\n")
             time.sleep(120)
@@ -173,7 +174,7 @@ def rte(url,i,k):
     except requests.exceptions.MissingSchema:
         driver.quit()
         if not multiple:
-            sys.exit("Error: Request timed out, try again.")
+            sys.exit("\nError: Request timed out, try again.")
         else:
             print("Request timed out, trying again in 5 minutes.\n")
             time.sleep(300)
@@ -183,7 +184,7 @@ def rte(url,i,k):
     except UnboundLocalError:
         driver.quit()
         if not multiple:
-            sys.exit("Error: Request timed out, try again.")
+            sys.exit("\nError: Request timed out, try again.")
         else:
             print("Request timed out, trying again in 2 minutes.\n")
             time.sleep(120)
@@ -227,7 +228,7 @@ def rte(url,i,k):
 
     if video_mpd == "":
         if not multiple:
-            sys.exit("Error: MPD URL not found, try again.")
+            sys.exit("\nError: MPD URL not found, try again.")
         else:
             print("MPD URL not found, trying again in 2 minutes.\n")
             time.sleep(120)
@@ -321,7 +322,7 @@ def rte(url,i,k):
 def virgin(url,i):
     if not multiple or i == 1:
         os.system('cls')
-        print("***  Virgin Media Player Downloader (rte-L3 v1.2.3)  ***")
+        print("***  Virgin Media Player Downloader (rte-L3 v1.2.4)  ***")
         print("***             Developed by fullonrager             ***\n")
     if multiple:
         print("Downloading video {} of {} from Virgin Media Player...".format(i, video_count)) 
@@ -332,7 +333,11 @@ def virgin(url,i):
     options.add_experimental_option("excludeSwitches", ["enable-logging"])
     options.add_extension("decryptor.crx")
     driver = webdriver.Chrome(options=options)
+    driver_version = driver.capabilities['chrome']['chromedriverVersion']
     driver.get(url)
+
+    if int(driver_version[0:2]) > 88:
+        sys.exit("\nError: Your installed version of Chrome is not compatible with this script.\nDowngrade Chrome (and your webdriver) to version 88.")
 
     # Bypass mature content pop-up if needed
     try:
@@ -393,7 +398,7 @@ def virgin(url,i):
         download_video(video_mpd)
     except UnboundLocalError:
         if not multiple:
-            sys.exit("Error: Failed to obtain video MPD URL, try again.")
+            sys.exit("\nError: Failed to obtain video MPD URL, try again.")
         else:
             print("Failed to obtain video MPD URL, trying again in 2 minutes.\n")
             time.sleep(120)
@@ -422,18 +427,21 @@ def virgin(url,i):
 def tg4(url,i,k):
     if not multiple or i == 1:
         os.system('cls')
-        print("***  TG4 Player Downloader (rte-L3 v1.2.3)  ***")
+        print("***  TG4 Player Downloader (rte-L3 v1.2.4)  ***")
         print("***        Developed by fullonrager         ***\n")
     if multiple:
         print("Downloading video {} of {} from TG4 Player...".format(i, video_count))
 
     print("Loading page...")
-
     options = webdriver.ChromeOptions()
     options.add_experimental_option("excludeSwitches", ["enable-logging"])
     options.add_extension("decryptor.crx")
     driver = webdriver.Chrome(options=options)
+    driver_version = driver.capabilities['chrome']['chromedriverVersion']
     driver.get(url)
+
+    if int(driver_version[0:2]) > 88:
+        sys.exit("\nError: Your installed version of Chrome is not compatible with this script.\nDowngrade Chrome (and your webdriver) to version 88.")
 
     tg4_regex = re.compile(r"https://manifest\.prod\.boltdns\.net/manifest/.*%3D%3D")
     tg4_ssai_regex = re.compile(r"https://ssaimanifest\.prod\.boltdns\.net/.*%3D%3D")
@@ -473,7 +481,7 @@ def tg4(url,i,k):
     except UnboundLocalError:
         if not multiple:
             driver.quit()
-            sys.exit("Error: MPD URL not found, try again.")
+            sys.exit("\nError: MPD URL not found, try again.")
         else:
             driver.quit()
             print("MPD URL not found, trying again in 2 minutes.\n")
@@ -610,7 +618,10 @@ else:
     try:
         url = sys.argv[1]
     except IndexError:
-        url = input("Enter the URL you wish to download from: ")
+        try:
+            url = input("Enter the URL you wish to download from: ")
+        except KeyboardInterrupt:
+            sys.exit()
 
     try:
         if url[12:15] == "rte":
