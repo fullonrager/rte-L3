@@ -78,7 +78,7 @@ def cleanup():
 def rte(url,i,k):
     if not multiple or i == 1:
         os.system('cls')
-        print("***  RTÉ Player Downloader (rte-L3 v1.2.4)  ***")
+        print("***  RTÉ Player Downloader (rte-L3 v1.2.5)  ***")
         print("***        Developed by fullonrager         ***\n")
     if multiple:
         print("Downloading video {} of {} from RTÉ Player...".format(i, video_count))
@@ -142,7 +142,7 @@ def rte(url,i,k):
     # Bypass mature content pop-up if needed
     try:
         driver.find_element_by_class_name('modal-body').text
-        driver.find_element_by_class_name('col-lg-18').click()
+        driver.find_element_by_class_name('btn.btn-lg.btn-warning.btn-shadow').click()
     except selenium.common.exceptions.NoSuchElementException:
         pass
 
@@ -322,7 +322,7 @@ def rte(url,i,k):
 def virgin(url,i):
     if not multiple or i == 1:
         os.system('cls')
-        print("***  Virgin Media Player Downloader (rte-L3 v1.2.4)  ***")
+        print("***  Virgin Media Player Downloader (rte-L3 v1.2.5)  ***")
         print("***             Developed by fullonrager             ***\n")
     if multiple:
         print("Downloading video {} of {} from Virgin Media Player...".format(i, video_count)) 
@@ -427,7 +427,7 @@ def virgin(url,i):
 def tg4(url,i,k):
     if not multiple or i == 1:
         os.system('cls')
-        print("***  TG4 Player Downloader (rte-L3 v1.2.4)  ***")
+        print("***  TG4 Player Downloader (rte-L3 v1.2.5)  ***")
         print("***        Developed by fullonrager         ***\n")
     if multiple:
         print("Downloading video {} of {} from TG4 Player...".format(i, video_count))
