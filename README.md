@@ -1,7 +1,9 @@
-# rte-L3
+# rte-L3 (EOL)
 Script to download from the RTÉ Player, TG4 Player, and Virgin Media Player using the recent L3 decryptor. Only works on Windows. This script requires tomer8007's [widevine-l3-decryptor](https://github.com/tomer8007/widevine-l3-decryptor/tree/ed8a97745c69b8cc0fc7f59cec9474b216b49e16).
 
-**Update (2021-03-28): Google have patched the decryptor in Chrome version 89 and above. You must downgrade Chrome to version 88 or below to use this script.**
+**Update (2021-06-01): Widevine have now revoked the private key used in the decryptor, so this script will no longer work. Thank you for your interest.**
+
+<s>**Update (2021-03-28): Google have patched the decryptor in Chrome version 89 and above. You must downgrade Chrome to version 88 or below to use this script.**</s>
 
 # Prerequisites
 1. `pip install -r requirements.txt`
